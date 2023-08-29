@@ -27,7 +27,7 @@ public class ServiceAController {
 
     @GetMapping
     @CircuitBreaker(name = SERVICE_A, fallbackMethod = "serviceAFallback")
-//    @Retry(name = SERVICE_A)            //CountedAspect
+//    @Retry(name = SERVICE_A)            //RetryAspect
 //    @RateLimiter(name = SERVICE_A)
     public String serviceA() {
 
