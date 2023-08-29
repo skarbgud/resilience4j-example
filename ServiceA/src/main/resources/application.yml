@@ -1,0 +1,44 @@
+server:
+  port: 8080
+
+management:
+  health:
+    circuitbreakers:
+      enabled: true #서킷브레이커에 대한 헬스체크 활성화
+  endpoints:
+    web:
+      exposure:
+        include: health
+  endpoint:
+    health:
+      show-details: always
+
+
+  #실패율 계산식
+  #실패율 = 실패횟수/slidingWindowSize or minimumNumberOfCalls* 100
+  #분모 값이 slidingWindowSize < minimumNumberOfCalls경우이면 slidingWindowSize 반대이면 minimumNumberOfCalls 값을 사용한다.
+resilience4j:
+  circuitbreaker:
+    instances:
+      serviceA: # 서비스A에 대한 서킷브레이커 설정
+        registerHealthIndicator: true #액츄에이터를 통해 서킷브레이커 상태를 확인할지 여부
+        eventConsumerBufferSize: 10   #내부 버퍼의 크기를 설정하는 매개변수 => 이벤트를 처리하는 데 사용되는 내부 버퍼의 크기를 지정. 이 값은 이벤트가 발생할 때마다 해당 이벤트를 버퍼에 저장하는데 사용.
+        failureRateThreshold: 50      #실폐율 임계값 : 50% (50%이상 실패에 도달하면 서킷브레이커 활성화)
+        minimumNumberOfCalls: 5       #최소요청횟수
+        automaticTransitionFromOpenToHalfOpenEnabled: true  #오픈에서 반오픈 자동 활성화 여부
+        waitDurationInOpenState: 5s   #몇초후에 반개방상태로 변환되는지
+        permittedNumberOfCallsInHalfOpenState: 3  #반개방상태에서 몇번의 호출후에 오픈상태가 될지 호출개수
+        slidingWindowSize: 10 #슬라이딩 윈도우 개수 (실패율계산에 사용) COUNT_BASED이면 개수, TIME_BASED이면 초
+        slidingWindowType: COUNT_BASED  #슬라이딩 윈도우 (카운트기반)
+  retry:
+    instances:
+      serviceA:
+        maxRetryAttempts: 5 #최대 재시도 횟수
+        waitDuration: 3s #재시도 간격
+  ratelimiter:
+    instances:
+      serviceA:
+        registerHealthIndicator: false
+        limitForPeriod: 10
+        limitRefreshPeriod: 10s
+        timeoutDuration: 3s
